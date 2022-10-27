@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../constant/routes.dart';
+import '../utilities/show_error_snackbar.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -68,15 +69,39 @@ class _LoginViewState extends State<LoginView> {
                 );
                 log(userCredential.toString());
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/notes/',
+                  notesRoute,
                   (route) => false,
                 );
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'user-not-found') {
+                  // await showErrorDialog(context, 'user-not-found');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      e.code,
+                    ),
+                  );
+
                   log('User not found');
                 } else if (e.code == 'wrong-password') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      e.code,
+                    ),
+                  );
                   log('Wrong password');
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      'Error ${e.code}',
+                    ),
+                  );
                 }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  showErrorSnackBar(
+                    e.toString(),
+                  ),
+                );
               }
             },
             child: const Text('Login'),
