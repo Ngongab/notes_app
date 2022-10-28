@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../constant/routes.dart';
+import '../utilities/show_error_snackbar.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -61,19 +62,44 @@ class _RegisterViewState extends State<RegisterView> {
               final password = _password.text;
 
               try {
-                final userCredential = await FirebaseAuth.instance
-                    .createUserWithEmailAndPassword(
-                        email: email, password: password);
-                log(userCredential.toString());
+                await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                    email: email, password: password);
+                final user = FirebaseAuth.instance.currentUser;
+                await user?.sendEmailVerification();
+                Navigator.of(context).pushNamed(verifyEmailRoute);
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'weak-password') {
-                  log('Weak password');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      e.code,
+                    ),
+                  );
                   log(e.message.toString());
                 } else if (e.code == 'email-already-in-use') {
-                  log('Email is already in use');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      e.code,
+                    ),
+                  );
                 } else if (e.code == 'invalid-email') {
-                  log('The email is invalid');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      e.code,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    showErrorSnackBar(
+                      'Error: ${e.code}',
+                    ),
+                  );
                 }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  showErrorSnackBar(
+                    e.toString(),
+                  ),
+                );
               }
             },
             child: const Text('Register'),

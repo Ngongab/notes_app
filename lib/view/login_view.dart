@@ -80,19 +80,16 @@ class _LoginViewState extends State<LoginView> {
                       e.code,
                     ),
                   );
-
-                  log('User not found');
                 } else if (e.code == 'wrong-password') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     showErrorSnackBar(
                       e.code,
                     ),
                   );
-                  log('Wrong password');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     showErrorSnackBar(
-                      'Error ${e.code}',
+                      'Error: ${e.code}',
                     ),
                   );
                 }
