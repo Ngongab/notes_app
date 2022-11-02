@@ -1,7 +1,8 @@
 import 'dart:developer';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:notes_app/services/auth/auth_exceptions.dart';
+import 'package:notes_app/services/auth/auth_service.dart';
 
 import '../constant/routes.dart';
 import '../utilities/show_error_snackbar.dart';
@@ -62,15 +63,14 @@ class _LoginViewState extends State<LoginView> {
               final password = _password.text;
 
               try {
-                final userCredential =
-                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                final userCredential = await AuthService.firebase().login(
                   email: email,
                   password: password,
                 );
 
-                final user = FirebaseAuth.instance.currentUser;
+                final user = AuthService.firebase().currentUser;
 
-                if (user?.emailVerified ?? false) {
+                if (user?.isEmailVerified ?? false) {
                   //User email IS verified
                   log(userCredential.toString());
                   Navigator.of(context).pushNamedAndRemoveUntil(
@@ -85,31 +85,20 @@ class _LoginViewState extends State<LoginView> {
                     (route) => false,
                   );
                 }
-              } on FirebaseAuthException catch (e) {
-                if (e.code == 'user-not-found') {
-                  // await showErrorDialog(context, 'user-not-found');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    showErrorSnackBar(
-                      e.code,
-                    ),
-                  );
-                } else if (e.code == 'wrong-password') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    showErrorSnackBar(
-                      e.code,
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    showErrorSnackBar(
-                      'Error: ${e.code}',
-                    ),
-                  );
-                }
-              } catch (e) {
+              } on UserNotFoundAuthException {
+                ScaffoldMessenger.of(context).showSnackBar(showErrorSnackBar(
+                  'User not found',
+                ));
+              } on WrongPasswordAuthException {
                 ScaffoldMessenger.of(context).showSnackBar(
                   showErrorSnackBar(
-                    e.toString(),
+                    'Wrong password',
+                  ),
+                );
+              } on GenericAuthException {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  showErrorSnackBar(
+                    'Error: Authentication error',
                   ),
                 );
               }
